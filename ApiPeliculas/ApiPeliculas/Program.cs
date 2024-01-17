@@ -27,6 +27,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//soporte para cors
+builder.Services.AddCors(p => p.AddPolicy("PolicyCors", build =>
+{
+    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader(); // el * significa que acepta que todos consuman la api
+}));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -37,6 +43,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+//soporte para cors
+app.UseCors("PolicyCors");
 
 app.UseAuthorization();
 
