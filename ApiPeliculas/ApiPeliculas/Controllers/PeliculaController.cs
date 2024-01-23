@@ -3,6 +3,7 @@ using ApiPeliculas.Modelos;
 using ApiPeliculas.Modelos.Dtos;
 using ApiPeliculas.Repositorio.IRepositorio;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiPeliculas.Controllers
@@ -22,23 +23,23 @@ namespace ApiPeliculas.Controllers
             _ctRepo2 = ctRepo2;
 
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
 
-        public IActionResult GetPeliculas() 
+        public IActionResult GetPeliculas()
         {
             var listaPeliculas = _ctRepo.GetPeliculas();
             var listaPeliculasDTO = new List<PeliculaDTO>();
 
-            foreach(var lista in listaPeliculas)
+            foreach (var lista in listaPeliculas)
             {
                 listaPeliculasDTO.Add(_mapper.Map<PeliculaDTO>(lista));
             }
             return Ok(listaPeliculasDTO);
         }
-
+        [AllowAnonymous]
         [HttpGet("{peliculaId:int}", Name = "GetPelicula")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -53,24 +54,26 @@ namespace ApiPeliculas.Controllers
                 return NotFound();
             }
 
-            var itemPeliculaDTO = _mapper.Map<PeliculaDTO>(itemPelicula); 
-                                                                            
+            var itemPeliculaDTO = _mapper.Map<PeliculaDTO>(itemPelicula);
+
             return Ok(itemPeliculaDTO);
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ProducesResponseType(201, Type = typeof(PeliculaDTO))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public IActionResult CrearPelicula([FromBody ] PeliculaDTO peliculaDTO)
+
+        public IActionResult CrearPelicula([FromBody] PeliculaDTO peliculaDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            if ( peliculaDTO == null)
+            if (peliculaDTO == null)
             {
                 return BadRequest(ModelState);
             }
@@ -79,28 +82,31 @@ namespace ApiPeliculas.Controllers
                 ModelState.AddModelError("", "La pelicula ya existe");
                 return StatusCode(404, ModelState);
             }
-            if(!_ctRepo2.ExixteCategoria(peliculaDTO.categoriaId))
+            if (!_ctRepo2.ExixteCategoria(peliculaDTO.categoriaId))
             {
                 ModelState.AddModelError("", "La categoria no existe");
                 return StatusCode(404, ModelState);
             }
-            
+
             var pelicula = _mapper.Map<Pelicula>(peliculaDTO);
-                //pelicula.Categoria = _ctRepo2.GetCategoria(peliculaDTO.categoriaId);
-               
-          if (!_ctRepo.CrearPelicula(pelicula))
-             {
-                 ModelState.AddModelError("", $"Algo salio mal el registro{pelicula.Name}");
+            //pelicula.Categoria = _ctRepo2.GetCategoria(peliculaDTO.categoriaId);
+
+            if (!_ctRepo.CrearPelicula(pelicula))
+            {
+                ModelState.AddModelError("", $"Algo salio mal el registro{pelicula.Name}");
                 return StatusCode(500, ModelState);
-             }
+            }
             return CreatedAtRoute("GetPelicula", new { peliculaId = pelicula.Id }, pelicula);
-            
+
         }
+        [Authorize(Roles = "admin")]
         [HttpPatch("{peliculaId:int}", Name = "ActualizarPatchPelicula")]
         [ProducesResponseType(201, Type = typeof(CategoriaDTO))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public IActionResult ActualizarPatchPelicula(int peliculaId, [FromBody] PeliculaDTO peliculaDto)
         {
             if (!ModelState.IsValid)
@@ -114,8 +120,8 @@ namespace ApiPeliculas.Controllers
 
 
             var pelicula = _mapper.Map<Pelicula>(peliculaDto);
-           
-            if(_ctRepo.ExistePelicula(peliculaDto.Name)) ///
+
+            if (_ctRepo.ExistePelicula(peliculaDto.Name)) ///
             {
                 ModelState.AddModelError("", "Ya existe una pelicula con este nombre");
                 return StatusCode(404, ModelState);
@@ -133,11 +139,12 @@ namespace ApiPeliculas.Controllers
 
             return NoContent();
         }
-
+        [Authorize(Roles = "admin")]
         [HttpDelete("{peliculaId:int}", Name = "BorrarPelicula")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult BorrarPelicula(int peliculaId)
         {
@@ -154,6 +161,42 @@ namespace ApiPeliculas.Controllers
             }
 
             return NoContent();
+        }
+        [AllowAnonymous]
+        [HttpGet("GetPeliculasEnCategoria/{categoriaId:int}")]
+        public IActionResult GetPeliculasEnCategoria(int categoriaId) 
+        {
+            var listaPeliculas = _ctRepo.GetPeliculasEnCategoria(categoriaId);
+            if (listaPeliculas == null)
+            {
+                return NotFound();
+            }
+            var itemPelicula = new List<PeliculaDTO>();
+
+            foreach (var item in listaPeliculas)
+            {
+                itemPelicula.Add(_mapper.Map<PeliculaDTO>(item));
+            }
+            return Ok(itemPelicula);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("Buscar")]
+        public IActionResult Buscar(string nombre) 
+        {
+            try
+            {
+                var resultado = _ctRepo.BuscarPelicula(nombre.Trim());
+                if(resultado.Any())
+                {
+                    return Ok(resultado);
+                }
+                return NotFound();
+            }
+            catch (Exception ) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error recuperando");
+            }
         }
 
     }

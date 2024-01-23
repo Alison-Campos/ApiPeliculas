@@ -137,3 +137,4 @@ C:\Users\aliso\OneDrive\Documents\GitHub\ApiPeliculas\ApiPeliculas\ApiPeliculas\
 C:\Users\aliso\OneDrive\Documents\GitHub\ApiPeliculas\ApiPeliculas\ApiPeliculas\obj\Debug\net8.0\ApiPeliculas.pdb
 C:\Users\aliso\OneDrive\Documents\GitHub\ApiPeliculas\ApiPeliculas\ApiPeliculas\obj\Debug\net8.0\ApiPeliculas.genruntimeconfig.cache
 C:\Users\aliso\OneDrive\Documents\GitHub\ApiPeliculas\ApiPeliculas\ApiPeliculas\obj\Debug\net8.0\ref\ApiPeliculas.dll
+C:\Users\aliso\OneDrive\Documents\GitHub\ApiPeliculas\ApiPeliculas\ApiPeliculas\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

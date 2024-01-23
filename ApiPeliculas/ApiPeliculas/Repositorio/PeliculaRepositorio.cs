@@ -1,6 +1,7 @@
 ﻿using ApiPeliculas.Data;
 using ApiPeliculas.Modelos;
 using ApiPeliculas.Repositorio.IRepositorio;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiPeliculas.Repositorio
 {
@@ -57,6 +58,21 @@ namespace ApiPeliculas.Repositorio
         public bool Guardar()
         {
             return _bd.SaveChanges() >= 0 ? true : false;
+        }
+
+       public ICollection<Pelicula> GetPeliculasEnCategoria(int catId)
+        {
+            return _bd.Pelicula.Include(ca => ca.categoriaId == catId).ToList();
+        }
+
+        public ICollection<Pelicula> BuscarPelicula(string nombre) 
+        {
+            IQueryable<Pelicula> query = _bd.Pelicula;
+            if (!string.IsNullOrEmpty(nombre))
+            {
+                query = query.Where(e => e.Name.Contains(nombre) || e.Descripcion.Contains(nombre));
+            }
+            return query.ToList();
         }
     }
 }

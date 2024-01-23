@@ -12,7 +12,8 @@ namespace ApiPeliculas.Repositorio.IRepositorio
         bool ActualizarPelicula(Pelicula pelicula);
         bool BorrarPelicula(Pelicula pelicula);
         bool Guardar();
-
+        ICollection<Pelicula> GetPeliculasEnCategoria(int catId);
+        ICollection<Pelicula> BuscarPelicula(string nombre);
 
     }
 }

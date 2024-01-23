@@ -2,6 +2,7 @@
 using ApiPeliculas.Modelos.Dtos;
 using ApiPeliculas.Repositorio.IRepositorio;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -22,9 +23,11 @@ namespace ApiPeliculas.Controllers
             _mapper = mapper;
         }
 
+        [Authorize(Roles = "admin")] 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetUsuarios()
         {
             var listaUsuarios = _usRepo.GetUsuarios();
@@ -39,12 +42,14 @@ namespace ApiPeliculas.Controllers
 
 
         }
-
+        [Authorize(Roles = "admin")]
         [HttpGet("{usuarioId:int}", Name = "GetUsuario")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public IActionResult GetUsuario(int usuarioId)
         {
             var itemUsuario= _usRepo.GetUsuario(usuarioId);
@@ -60,7 +65,7 @@ namespace ApiPeliculas.Controllers
                                                                              // el objeto con solo los items definidos en categoriaDTO
             return Ok(itemUsuarioDTO);
         }
-
+        [AllowAnonymous]
         [HttpPost("registro")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,6 +95,7 @@ namespace ApiPeliculas.Controllers
             _respuestaApi.IsSuccess = true;
             return Ok(_respuestaApi);
         }
+        [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
